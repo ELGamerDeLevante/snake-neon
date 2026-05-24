@@ -90,6 +90,14 @@
     allowtransparency
     referrerpolicy="unsafe-url">
   </iframe>
+</div> <div class="chat">
+  <h3>💬 Chat en vivo</h3>
+  
+  <div id="messages" style="height:200px; overflow:auto; background:#111; padding:10px;"></div>
+
+  <input id="name" placeholder="Nombre" style="width:30%; padding:5px;">
+  <input id="message" placeholder="Escribe mensaje..." style="width:50%; padding:5px;">
+  <button onclick="sendMessage()">Enviar</button>
 </div>
 
   <div class="matches">
@@ -101,4 +109,36 @@
 </div>
 
 </body>
+ <script>
+const firebaseURL = "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/";
+
+function loadMessages() {
+  fetch(firebaseURL + "/messages.json")
+    .then(res => res.json())
+    .then(data => {
+      const box = document.getElementById("messages");
+      box.innerHTML = "";
+      for (let id in data) {
+        box.innerHTML += "<p><b>" + data[id].name + ":</b> " + data[id].text + "</p>";
+      }
+    });
+}
+
+function sendMessage() {
+  const name = document.getElementById("name").value;
+  const message = document.getElementById("message").value;
+
+  fetch(firebaseURL + "/messages.json", {
+    method: "POST",
+    body: JSON.stringify({
+      name: name,
+      text: message
+    })
+  });
+
+  document.getElementById("message").value = "";
+}
+
+setInterval(loadMessages, 2000);
+</script>
 </html>
