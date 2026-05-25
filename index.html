@@ -192,21 +192,31 @@ function loadMessages() {
       const box = document.getElementById("messages");
 
       if (!data) {
-        box.innerHTML = "<p>No hay mensajes aún</p>";
+        box.innerHTML = "<p style='color:#aaa'>No hay mensajes aún</p>";
         return;
       }
 
       box.innerHTML = "";
 
-      for (let id in data) {
-        box.innerHTML += `<p><b>${data[id].name}:</b> ${data[id].text}</p>`;
-      }
+      Object.keys(data).forEach(id => {
+        const msg = data[id];
+
+        box.innerHTML += `
+          <p><b style="color:red">${msg.name}:</b> ${msg.text}</p>
+        `;
+      });
+    })
+    .catch(() => {
+      document.getElementById("messages").innerHTML =
+        "<p style='color:red'>Error cargando chat</p>";
     });
 }
 
 function sendMessage() {
   const name = document.getElementById("name").value;
   const message = document.getElementById("message").value;
+
+  if (!name || !message) return;
 
   fetch(firebaseURL + "/messages.json", {
     method: "POST",
@@ -220,6 +230,7 @@ function sendMessage() {
 }
 
 setInterval(loadMessages, 2000);
+loadMessages();
 </script>
 
 </body>
