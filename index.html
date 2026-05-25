@@ -29,7 +29,7 @@ header {
   font-weight: bold;
 }
 
-/* PLAYER (YOUTUBE) */
+/* PLAYER */
 .player {
   width: calc(100% - 40px);
   max-width: 500px;
@@ -54,6 +54,21 @@ header {
   color: #ccc;
   line-height: 1.8;
   font-weight: bold;
+}
+
+/* LEGAL (entre categorías y chat) */
+.legal-center {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.legal-center button {
+  background: red;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 /* CHAT */
@@ -116,19 +131,7 @@ button {
   font-size: 14px;
 }
 
-/* LEGAL */
-.legal-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: red;
-  border: none;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
+/* MODAL */
 #legalModal {
   display: none;
   position: fixed;
@@ -144,7 +147,7 @@ button {
   border-radius: 10px;
 }
 
-/* móvil ajuste */
+/* móvil */
 @media (max-width: 600px) {
   .chat, .player {
     width: calc(100% - 20px);
@@ -179,8 +182,12 @@ button {
 <div class="fighters">
   MMA / BOXEO / LUCHA / EVENTOS
 </div>
-<!-- LEGAL -->
-<button class="legal-btn" onclick="openLegal()">Aviso Legal</button>
+
+<!-- AVISO LEGAL (AQUÍ ES DONDE LO QUERÍAS) -->
+<div class="legal-center">
+  <button onclick="openLegal()">Aviso Legal</button>
+</div>
+
 <!-- CHAT -->
 <div class="chat">
   <h3>💬 Chat en vivo</h3>
@@ -199,8 +206,7 @@ button {
   </div>
 </div>
 
-
-
+<!-- MODAL LEGAL -->
 <div id="legalModal">
   <div class="modal-box">
     <h2 style="color:red;">Aviso Legal</h2>
