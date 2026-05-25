@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,7 @@ body {
   color: white;
 }
 
-/* HEADER LOGO */
+/* BANNER */
 .hero-banner {
   position: relative;
   display: flex;
@@ -21,13 +22,11 @@ body {
   align-items: center;
   background: linear-gradient(to bottom, #111, black);
   padding: 30px;
-  overflow: hidden;
   border-bottom: 2px solid #222;
 }
 
 .center-content {
   text-align: center;
-  z-index: 2;
 }
 
 .center-content h1 {
@@ -58,46 +57,20 @@ body {
 }
 
 .fighter img {
-  height: 280px;
+  height: 260px;
   object-fit: contain;
   filter: drop-shadow(0 0 10px red);
 }
 
-@media (max-width: 900px) {
-  .hero-banner {
-    flex-direction: column;
-  }
-
-  .fighter img {
-    height: 180px;
-  }
-
-  .center-content h1 {
-    font-size: 28px;
-  }
-}
-
-header span {
-  color: red;
-}
-
-/* HERO */
-.hero {
+/* LIVE BAR */
+.livebar {
   text-align: center;
-  padding: 40px 20px;
-  background: radial-gradient(circle, #111, black);
+  padding: 10px;
+  background: red;
+  font-weight: bold;
 }
 
-.hero h1 {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-.hero p {
-  color: #aaa;
-}
-
-/* FIGHTERS */
+/* CARDS */
 .fighters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -111,17 +84,12 @@ header span {
   border-radius: 12px;
   padding: 15px;
   text-align: center;
-  transition: 0.3s;
 }
 
 .card:hover {
-  transform: scale(1.05);
   border-color: red;
-}
-
-.card h3 {
-  margin: 10px 0;
-  color: white;
+  transform: scale(1.05);
+  transition: 0.3s;
 }
 
 .tag {
@@ -129,23 +97,39 @@ header span {
   font-size: 12px;
 }
 
-/* LIVE BAR */
-.livebar {
-  text-align: center;
-  padding: 10px;
-  background: red;
-  font-weight: bold;
+/* CHAT */
+.container {
+  padding: 20px;
 }
 
+.chat {
+  background: #111;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#messages {
+  height: 200px;
+  overflow: auto;
+  background: black;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #222;
+}
+
+input {
+  padding: 5px;
+}
 </style>
 
 </head>
 
 <body>
 
+<!-- BANNER -->
 <div class="hero-banner">
 
-  <div class="fighter left-fighter">
+  <div class="fighter">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Ilia_Topuria_2024.png/640px-Ilia_Topuria_2024.png">
   </div>
 
@@ -155,15 +139,18 @@ header span {
     <p>MMA LIVE STREAMING</p>
   </div>
 
-  <div class="fighter right-fighter">
+  <div class="fighter">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Conor_McGregor_2018.jpg/640px-Conor_McGregor_2018.jpg">
   </div>
 
 </div>
 
+<!-- LIVE -->
 <div class="livebar">
   🔴 MMA LIVE - UFC / MMA STREAMING
 </div>
+
+<!-- CANALES -->
 <div class="fighters">
 
   <div class="card">
@@ -181,42 +168,34 @@ header span {
   <div class="card">
     <div class="tag">CANAL</div>
     <h3>WOW</h3>
-    <p>the way of the warrior / Eventos</p>
+    <p>Women of Wrestling</p>
   </div>
 
   <div class="card">
     <div class="tag">CANAL</div>
     <h3>WAR</h3>
-    <p>Eventos de combate y lucha</p>
+    <p>Combat Sports</p>
   </div>
 
 </div>
 
-
-
+<!-- CHAT -->
 <div class="container">
 
-   <div class="chat">
-  <h3>💬 Chat en vivo</h3>
-  
-  <div id="messages" style="height:200px; overflow:auto; background:#111; padding:10px;"></div>
+  <div class="chat">
+    <h3>💬 Chat en vivo</h3>
 
-  <input id="name" placeholder="Nombre" style="width:30%; padding:5px;">
-  <input id="message" placeholder="Escribe mensaje..." style="width:50%; padding:5px;">
-  <button onclick="sendMessage()">Enviar</button>
-</div>
+    <div id="messages"></div>
 
-  <div class="matches">
-
-    
-
+    <input id="name" placeholder="Nombre">
+    <input id="message" placeholder="Mensaje">
+    <button onclick="sendMessage()">Enviar</button>
   </div>
 
 </div>
 
-</body>
-
- <script>
+<!-- SCRIPT FIREBASE -->
+<script>
 const firebaseURL = "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/";
 
 function loadMessages() {
@@ -225,8 +204,9 @@ function loadMessages() {
     .then(data => {
       const box = document.getElementById("messages");
       box.innerHTML = "";
+
       for (let id in data) {
-        box.innerHTML += "<p><b>" + data[id].name + ":</b> " + data[id].text + "</p>";
+        box.innerHTML += `<p><b>${data[id].name}:</b> ${data[id].text}</p>`;
       }
     });
 }
@@ -248,4 +228,6 @@ function sendMessage() {
 
 setInterval(loadMessages, 2000);
 </script>
+
+</body>
 </html>
