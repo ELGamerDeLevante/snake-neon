@@ -14,13 +14,67 @@ body {
 }
 
 /* HEADER LOGO */
-header {
+.hero-banner {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, #111, black);
+  padding: 30px;
+  overflow: hidden;
+  border-bottom: 2px solid #222;
+}
+
+.center-content {
   text-align: center;
-  padding: 20px;
-  font-size: 32px;
-  font-weight: bold;
-  letter-spacing: 2px;
+  z-index: 2;
+}
+
+.center-content h1 {
+  font-size: 42px;
+  margin-top: 20px;
   color: white;
+  letter-spacing: 3px;
+}
+
+.center-content p {
+  color: red;
+  font-weight: bold;
+}
+
+.octagon {
+  width: 140px;
+  height: 140px;
+  background: #111;
+  border: 4px solid red;
+  clip-path: polygon(
+    30% 0%, 70% 0%,
+    100% 30%, 100% 70%,
+    70% 100%, 30% 100%,
+    0% 70%, 0% 30%
+  );
+  margin: auto;
+  box-shadow: 0 0 25px red;
+}
+
+.fighter img {
+  height: 280px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px red);
+}
+
+@media (max-width: 900px) {
+  .hero-banner {
+    flex-direction: column;
+  }
+
+  .fighter img {
+    height: 180px;
+  }
+
+  .center-content h1 {
+    font-size: 28px;
+  }
 }
 
 header span {
@@ -89,19 +143,27 @@ header span {
 
 <body>
 
-<header>
-  EL GAMER DE <span>LEVANTE</span>
-</header>
+<div class="hero-banner">
+
+  <div class="fighter left-fighter">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Ilia_Topuria_2024.png/640px-Ilia_Topuria_2024.png">
+  </div>
+
+  <div class="center-content">
+    <div class="octagon"></div>
+    <h1>EL GAMER DE LEVANTE</h1>
+    <p>MMA LIVE STREAMING</p>
+  </div>
+
+  <div class="fighter right-fighter">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Conor_McGregor_2018.jpg/640px-Conor_McGregor_2018.jpg">
+  </div>
+
+</div>
 
 <div class="livebar">
   🔴 MMA LIVE - UFC / MMA STREAMING
 </div>
-
-<div class="hero">
-  <h1>La mejor acción de MMA en directo</h1>
-  
-</div>
-
 <div class="fighters">
 
   <div class="card">
@@ -129,12 +191,8 @@ header span {
   </div>
 
 </div>
-</body> 
-</html>
 
-<header>
-  EL GAMER DE LEVANTE
-</header>
+
 
 <div class="container">
 
