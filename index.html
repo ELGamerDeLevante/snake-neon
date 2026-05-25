@@ -145,30 +145,30 @@ const firebaseURL = "https://elgamerdelevante-chat-default-rtdb.europe-west1.fir
 
 function loadMessages() {
   fetch(firebaseURL + "/messages.json")
-  .then(r => r.json())
-  .then(data => {
-    const box = document.getElementById("messages");
-    box.innerHTML = "";
+    .then(res => res.json())
+    .then(data => {
+      const box = document.getElementById("messages");
+      box.innerHTML = "";
 
-    if (!data) return;
+      if (!data) return;
 
-    Object.values(data).forEach(m => {
-      const color = "#" + ((Math.random()*0xffffff)|0).toString(16);
+      Object.values(data).forEach(m => {
+        const color = "#" + ((Math.random() * 0xffffff) | 0).toString(16);
 
-box.innerHTML += `
-  <div style="
-    margin:5px 0;
-    padding:6px;
-    background:#111;
-    border-left:3px solid red;
-    border-radius:6px;
-  ">
-    <span style="color:${color}; font-weight:bold">${m.name}</span>
-    <span>: ${m.text}</span>
-  </div>
-`;
+        box.innerHTML += `
+          <div style="
+            margin:5px 0;
+            padding:6px;
+            background:#111;
+            border-left:3px solid red;
+            border-radius:6px;
+          ">
+            <span style="color:${color}; font-weight:bold">${m.name}</span>
+            <span>: ${m.text}</span>
+          </div>
+        `;
+      });
     });
-  });
 }
 
 function sendMessage() {
