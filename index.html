@@ -29,7 +29,7 @@ header {
   font-weight: bold;
 }
 
-/* CATEGORÍAS (texto simple) */
+/* CATEGORÍAS */
 .fighters {
   padding: 20px;
   text-align: center;
@@ -39,12 +39,14 @@ header {
   font-weight: bold;
 }
 
-/* CHAT */
+/* CHAT (MEJORADO + MÁS ESTRECHO) */
 .chat {
-  margin: 20px;
+  margin: 20px auto;
   background: #111;
   padding: 15px;
   border-radius: 10px;
+  max-width: 500px;   /* 👈 más estrecho */
+  width: 95%;
 }
 
 #messages {
@@ -57,7 +59,7 @@ header {
   border-radius: 8px;
 }
 
-/* input chat */
+/* inputs */
 input {
   padding: 8px;
   border-radius: 6px;
@@ -66,7 +68,7 @@ input {
   color: white;
 }
 
-/* enviar */
+/* botón enviar */
 button {
   padding: 8px 12px;
   border-radius: 6px;
@@ -196,7 +198,7 @@ function sendMessage() {
   document.getElementById("message").value = "";
 }
 
-/* CONTADOR (simulado estable) */
+/* CONTADOR SIMULADO */
 let base = 12;
 
 function updateCounter() {
