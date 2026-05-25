@@ -39,7 +39,7 @@ header {
   font-weight: bold;
 }
 
-/* CHAT (CENTRADO PERFECTO EN PC Y MÓVIL) */
+/* CHAT */
 .chat {
   margin: 20px auto;
   background: #111;
@@ -51,7 +51,6 @@ header {
   box-sizing: border-box;
 }
 
-/* mensajes */
 #messages {
   height: 220px;
   overflow-y: auto;
@@ -62,7 +61,7 @@ header {
   border-radius: 8px;
 }
 
-/* inputs */
+/* input */
 input {
   padding: 8px;
   border-radius: 6px;
@@ -71,7 +70,7 @@ input {
   color: white;
 }
 
-/* botón enviar */
+/* botón */
 button {
   padding: 8px 12px;
   border-radius: 6px;
@@ -116,7 +115,7 @@ button {
   border-radius: 10px;
 }
 
-/* 👇 ajuste extra móvil */
+/* móvil ajuste */
 @media (max-width: 600px) {
   .chat {
     width: calc(100% - 20px);
@@ -185,8 +184,9 @@ function loadMessages() {
 
       Object.values(data).forEach(m => {
         box.innerHTML += `
-          <div style="margin-bottom:6px;">
-            <b style="color:red">${m.name}:</b> ${m.text}
+          <div style="margin-bottom:10px;">
+            <div style="color:red; font-weight:bold;">${m.name}</div>
+            <div style="margin-left:5px;">${m.text}</div>
           </div>
         `;
       });
@@ -209,7 +209,7 @@ function sendMessage() {
   document.getElementById("message").value = "";
 }
 
-/* CONTADOR SIMULADO */
+/* contador simulado */
 let base = 12;
 
 function updateCounter() {
@@ -220,11 +220,11 @@ function updateCounter() {
 setInterval(updateCounter, 4000);
 updateCounter();
 
-/* INIT */
+/* init */
 setInterval(loadMessages, 2000);
 loadMessages();
 
-/* LEGAL */
+/* legal */
 function openLegal() {
   document.getElementById("legalModal").style.display = "block";
 }
