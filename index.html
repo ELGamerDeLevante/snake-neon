@@ -62,7 +62,7 @@ button.card:hover {
 iframe {
   width: 100%;
   max-width: 900px;
-  height: 450px;
+  height: 500px;
   border: 2px solid red;
   border-radius: 10px;
   background: black;
@@ -128,14 +128,22 @@ input {
 
 <div class="livebar">🔴 MMA LIVE</div>
 
-
-
 <!-- BOTONES -->
 <div class="fighters">
   <button class="card" onclick="loadStream('UFC')">UFC</button>
   <button class="card" onclick="loadStream('PFL')">PFL</button>
   <button class="card" onclick="loadStream('WOW')">WOW</button>
   <button class="card" onclick="loadStream('WAR')">WAR</button>
+</div>
+
+<!-- PLAYER -->
+<div class="player">
+  <iframe 
+    id="player"
+    src="https://embedsports.me/mma/2026-pfl-mena-1-mohammad-yahya-vs-mehdi-saadi-stream-1"
+    allowfullscreen
+    scrolling="no">
+  </iframe>
 </div>
 
 <!-- CHAT -->
@@ -161,16 +169,16 @@ input {
 </div>
 
 <script>
-/* STREAMS (SIN YOUTUBE) */
+/* STREAMS */
 const streams = {
-  UFC: "https://example.com/stream1",
-  PFL: "https://example.com/stream2",
-  WOW: "https://example.com/stream3",
-  WAR: "https://example.com/stream4"
+  UFC: "https://embedsports.me/mma/2026-pfl-mena-1-mohammad-yahya-vs-mehdi-saadi-stream-1",
+  PFL: "https://embedsports.me/mma/2026-pfl-mena-1-mohammad-yahya-vs-mehdi-saadi-stream-1",
+  WOW: "https://embedsports.me/mma/2026-pfl-mena-1-mohammad-yahya-vs-mehdi-saadi-stream-1",
+  WAR: "https://embedsports.me/mma/2026-pfl-mena-1-mohammad-yahya-vs-mehdi-saadi-stream-1"
 };
 
 function loadStream(channel) {
-  document.getElementById("player").src = streams[channel] || "";
+  document.getElementById("player").src = streams[channel];
 }
 
 /* CHAT */
