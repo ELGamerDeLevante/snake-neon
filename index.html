@@ -31,14 +31,6 @@ header {
   font-weight: bold;
 }
 
-.player {
-  width: calc(100% - 40px);
-  max-width: 500px;
-  margin: 15px auto;
-  display: flex;
-  justify-content: center;
-}
-
 .chat {
   margin: 20px auto;
   background: #111;
@@ -46,6 +38,7 @@ header {
   border-radius: 10px;
   width: calc(100% - 40px);
   max-width: 500px;
+  box-sizing: border-box;
 }
 
 #messages {
@@ -53,8 +46,9 @@ header {
   overflow-y: auto;
   background: black;
   padding: 10px;
-  border-radius: 8px;
+  margin-bottom: 10px;
   border: 1px solid #222;
+  border-radius: 8px;
 }
 
 input {
@@ -63,6 +57,7 @@ input {
   border: 1px solid #333;
   background: #000;
   color: white;
+  box-sizing: border-box;
 }
 
 .msg-row {
@@ -84,10 +79,12 @@ button {
   cursor: pointer;
 }
 
-.stats {
-  text-align: center;
-  margin-top: 10px;
+.chat-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
   color: #aaa;
+  margin-bottom: 10px;
 }
 </style>
 </head>
@@ -102,14 +99,14 @@ button {
   🔴 MMA LIVE / CHAT EN DIRECTO
 </div>
 
-<div class="stats">
-  👀 Espectadores: <span id="viewers">0</span> |
-  👥 Miembros: <span id="membersCount">0</span>
-</div>
-
-<!-- CHAT -->
 <div class="chat">
+
   <h3>💬 Chat en vivo</h3>
+
+  <div class="chat-stats">
+    <div>👀 Espectadores: <span id="viewers">0</span></div>
+    <div>👥 Miembros: <span id="membersCount">0</span></div>
+  </div>
 
   <div id="messages"></div>
 
@@ -119,10 +116,13 @@ button {
     <input id="message" placeholder="Mensaje">
     <button onclick="sendMessage()">Enviar</button>
   </div>
+
 </div>
 
 <script>
-/* 🔥 FIREBASE CONFIG */
+/* =========================
+   🔥 FIREBASE INIT
+========================= */
 const firebaseConfig = {
   databaseURL: "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/"
 };
@@ -130,30 +130,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* IDs únicos */
+/* ID único */
 const userId = Math.random().toString(36).substr(2, 9);
 
 /* =========================
-   💬 CHAT REAL TIME
+   💬 CHAT OPTIMIZADO
 ========================= */
-
 const messagesRef = db.ref("messages");
 
-messagesRef.on("value", (snap) => {
-  const data = snap.val();
+/* SOLO NUEVOS MENSAJES (NO RECARGA TODO) */
+messagesRef.on("child_added", (snap) => {
+  const m = snap.val();
   const box = document.getElementById("messages");
-  box.innerHTML = "";
 
-  if (!data) return;
+  const div = document.createElement("div");
+  div.style.marginBottom = "8px";
+  div.innerHTML = `<b style="color:red">${m.name}:</b> ${m.text}`;
 
-  Object.values(data).forEach(m => {
-    box.innerHTML += `
-      <div style="margin-bottom:8px;">
-        <b style="color:red">${m.name}:</b> ${m.text}
-      </div>
-    `;
-  });
-
+  box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 });
 
@@ -173,16 +167,12 @@ function sendMessage() {
 }
 
 /* =========================
-   👀 ESPECTADORES
+   👀 ESPECTADORES REALES
 ========================= */
-
 const viewersRef = db.ref("viewers");
 
 viewersRef.child(userId).set(true);
-
-window.addEventListener("beforeunload", () => {
-  viewersRef.child(userId).remove();
-});
+viewersRef.child(userId).onDisconnect().remove();
 
 viewersRef.on("value", (snap) => {
   const data = snap.val();
@@ -191,20 +181,21 @@ viewersRef.on("value", (snap) => {
 });
 
 /* =========================
-   👥 MIEMBROS
+   👥 MIEMBROS REALES
 ========================= */
-
 const membersRef = db.ref("members");
 
-let username = "Usuario" + Math.floor(Math.random() * 1000);
+let username = "";
 
-membersRef.child(userId).set({
-  name: username
+document.getElementById("name").addEventListener("change", (e) => {
+  username = e.target.value;
+
+  membersRef.child(userId).set({
+    name: username
+  });
 });
 
-window.addEventListener("beforeunload", () => {
-  membersRef.child(userId).remove();
-});
+membersRef.child(userId).onDisconnect().remove();
 
 membersRef.on("value", (snap) => {
   const data = snap.val();
