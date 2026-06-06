@@ -40,6 +40,29 @@ header {
   color: #aaa;
 }
 
+/* PLAYER */
+.player-container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.player-container iframe {
+  width: 100%;
+  height: 500px;
+  border: 2px solid red;
+  border-radius: 12px;
+  background: black;
+  box-shadow: 0 0 20px rgba(255,0,0,0.4);
+}
+
+.event-title-live {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 26px;
+  font-weight: bold;
+}
+
 /* PANEL INFO */
 .fighters {
   display: grid;
@@ -99,8 +122,8 @@ input {
   border: 1px solid #333;
   background: #000;
   color: white;
-  box-sizing: border-box;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* FILA MENSAJE */
@@ -122,35 +145,27 @@ button {
   background: red;
   color: white;
   cursor: pointer;
-  white-space: nowrap;
 }
 
 /* RESPONSIVE */
 @media (max-width: 600px) {
   .chat {
     width: calc(100% - 20px);
-    margin: 10px auto;
   }
 
   .fighters {
     grid-template-columns: 1fr;
   }
+
+  .player-container iframe {
+    height: 250px;
+  }
 }
 
-/* AVISO LEGAL */
+/* LEGAL */
 .legal-footer {
   text-align: center;
   padding: 25px 0;
-}
-
-.legal-footer button {
-  background: red;
-  border: none;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
 }
 
 #legalModal {
@@ -180,8 +195,24 @@ button {
   🔴 EL GAMER DE LEVANTE / MMA LIVE
 </div>
 
+<!-- 🔴 STREAM AÑADIDO -->
+<div class="player-container">
 
-<!-- PANEL MMA -->
+  <h2 class="event-title-live">
+    WOW FC 31 - LIVE
+  </h2>
+
+  <iframe 
+    src="https://embedsports.me/mma/wow-fc-31-stream-1"
+    frameborder="0"
+    allowfullscreen
+    scrolling="no"
+    referrerpolicy="unsafe-url">
+  </iframe>
+
+</div>
+
+<!-- PANEL -->
 <div class="fighters">
   <div class="card">MMA</div>
   <div class="card">BOXEO</div>
@@ -210,7 +241,7 @@ button {
 
 </div>
 
-<!-- AVISO LEGAL -->
+<!-- LEGAL -->
 <div class="legal-footer">
   <button onclick="openLegal()">Aviso Legal</button>
 </div>
@@ -219,8 +250,8 @@ button {
   <div class="modal-box">
     <h2 style="color:red;">Aviso Legal</h2>
     <p>
-      Esta página es un proyecto informativo y de entretenimiento.<br>
-      No aloja ni retransmite contenido propio.
+      Proyecto informativo y de entretenimiento.<br>
+      No alojamos contenido propio.
     </p>
     <button onclick="closeLegal()">Cerrar</button>
   </div>
@@ -260,18 +291,13 @@ function sendMessage() {
 
   if (!name.trim() || !message.trim()) return;
 
-  messagesRef.push({
-    name,
-    text: message,
-    time: Date.now()
-  });
+  messagesRef.push({ name, text: message, time: Date.now() });
 
   document.getElementById("message").value = "";
 }
 
-/* ENTER */
 document.getElementById("message")
-.addEventListener("keypress", function(e) {
+.addEventListener("keypress", e => {
   if (e.key === "Enter") sendMessage();
 });
 
@@ -281,7 +307,7 @@ const viewersRef = db.ref("viewers");
 viewersRef.child(userId).set(true);
 viewersRef.child(userId).onDisconnect().remove();
 
-viewersRef.on("value", (snap) => {
+viewersRef.on("value", snap => {
   const data = snap.val();
   document.getElementById("viewers").innerText =
     data ? Object.keys(data).length : 0;
@@ -290,18 +316,14 @@ viewersRef.on("value", (snap) => {
 /* MEMBERS */
 const membersRef = db.ref("members");
 
-let username = "";
-
 document.getElementById("name")
-.addEventListener("change", (e) => {
-  username = e.target.value;
-
-  membersRef.child(userId).set({ name: username });
+.addEventListener("change", e => {
+  membersRef.child(userId).set({ name: e.target.value });
 });
 
 membersRef.child(userId).onDisconnect().remove();
 
-membersRef.on("value", (snap) => {
+membersRef.on("value", snap => {
   const data = snap.val();
   document.getElementById("membersCount").innerText =
     data ? Object.keys(data).length : 0;
