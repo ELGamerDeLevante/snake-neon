@@ -17,7 +17,6 @@ body {
   color: white;
 }
 
-/* HEADER */
 header {
   text-align: center;
   padding: 20px;
@@ -25,7 +24,6 @@ header {
   font-weight: bold;
 }
 
-/* LIVE BAR */
 .livebar {
   text-align: center;
   padding: 10px;
@@ -33,7 +31,6 @@ header {
   font-weight: bold;
 }
 
-/* PANEL INFO */
 .info-panel {
   max-width:750px;
   margin:15px auto;
@@ -67,7 +64,6 @@ header {
   font-size: 15px;
 }
 
-/* CHAT */
 .chat {
   margin: 20px auto;
   background: #111;
@@ -78,7 +74,6 @@ header {
   box-sizing: border-box;
 }
 
-/* ESTADÍSTICAS */
 .chat-stats {
   display: flex;
   justify-content: space-between;
@@ -87,7 +82,6 @@ header {
   margin-bottom: 10px;
 }
 
-/* MENSAJES */
 #messages {
   height: 220px;
   overflow-y: auto;
@@ -98,7 +92,6 @@ header {
   border-radius: 8px;
 }
 
-/* INPUTS */
 input {
   padding: 8px;
   border-radius: 6px;
@@ -109,7 +102,6 @@ input {
   box-sizing: border-box;
 }
 
-/* FILA MENSAJE */
 .msg-row {
   display: flex;
   gap: 8px;
@@ -120,7 +112,6 @@ input {
   flex: 1;
 }
 
-/* BOTÓN */
 button {
   padding: 8px 12px;
   border-radius: 6px;
@@ -130,18 +121,6 @@ button {
   cursor: pointer;
 }
 
-/* RESPONSIVE */
-@media (max-width: 600px) {
-  .chat {
-    width: calc(100% - 20px);
-  }
-
-  .fighters {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* LEGAL */
 .legal-footer {
   text-align: center;
   padding: 25px 0;
@@ -161,6 +140,15 @@ button {
   padding: 20px;
   border-radius: 10px;
 }
+
+/* 📌 PINNED */
+#pinnedMessage {
+  background:#222;
+  padding:10px;
+  margin-bottom:10px;
+  border-left:4px solid red;
+  font-size:14px;
+}
 </style>
 </head>
 
@@ -176,174 +164,161 @@ button {
 
 <!-- INFO -->
 <div class="info-panel">
-
-  <b style="color:red;">INSTRUCCIONES</b><br><br>
-
-  Para ver los eventos en directo espera a que aparezcan en la web.<br>
-  Refrescar o actualizar la web.<br><br>
-
-  Una vez aparezca, darle a <b>play</b> y atrás dos o tres veces.<br>
-  Quitar pantallas emergentes y play.<br><br>
-
-  <b style="color:white;">Disfruten del show</b>
-
+<b style="color:red;">INSTRUCCIONES</b><br><br>
+Espera a que el evento aparezca en la web.<br>
+Actualiza la página.<br><br>
+Pulsa play y atrás 2-3 veces si hace falta.<br><br>
+Disfruta del show
 </div>
 
 <!-- CHAT -->
 <div class="chat">
 
-  <h3>💬 Chat en vivo</h3>
+<h3>💬 Chat en vivo</h3>
 
-  <div class="chat-stats">
-    <div>👀 Espectadores: <span id="viewers">0</span></div>
-    <div>👥 Miembros: <span id="membersCount">0</span></div>
-  </div>
+<div class="chat-stats">
+<div>👀 Espectadores: <span id="viewers">0</span></div>
+<div>👥 Miembros: <span id="membersCount">0</span></div>
+</div>
 
-  <div id="messages"></div>
+<!-- 📌 MENSAJE FIJADO -->
+<div id="pinnedMessage">📌 Bienvenidos al chat en directo</div>
 
-  <input id="name" placeholder="Nombre">
+<div id="messages"></div>
 
-  <div class="msg-row">
-    <input id="message" placeholder="Mensaje">
-    <button onclick="sendMessage()">Enviar</button>
-  </div>
+<input id="name" placeholder="Nombre">
+
+<div class="msg-row">
+<input id="message" placeholder="Mensaje">
+<button onclick="sendMessage()">Enviar</button>
+</div>
 
 </div>
 
 <!-- LEGAL -->
 <div class="legal-footer">
-  <button onclick="openLegal()">Aviso Legal</button>
+<button onclick="openLegal()">Aviso Legal</button>
 </div>
 
 <div id="legalModal">
-  <div class="modal-box">
-    <h2 style="color:red;">Aviso Legal</h2>
-    <p>
-      Proyecto informativo y de entretenimiento.<br>
-      No alojamos contenido propio.
-    </p>
-    <button onclick="closeLegal()">Cerrar</button>
-  </div>
+<div class="modal-box">
+<h2 style="color:red;">Aviso Legal</h2>
+<p>Proyecto informativo y de entretenimiento.<br>No alojamos contenido propio.</p>
+<button onclick="closeLegal()">Cerrar</button>
+</div>
 </div>
 
 <script>
 
-/* FIREBASE */
-const firebaseConfig = {
-  databaseURL:
-    "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/"
-};
-
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp({
+databaseURL: "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/"
+});
 
 const db = firebase.database();
 const userId = Math.random().toString(36).substr(2, 9);
 
-/* 🔥 ANTI-SPAM */
+/* 🔥 CONFIG */
 let lastMessageTime = 0;
+const slowMode = 3000;
+
+const mods = ["ELGAMERDELEVANTE"];
+const badWords = ["puta","mierda","idiota","tonto"];
+
+const userColors = {};
+
+function getColor(name){
+if(userColors[name]) return userColors[name];
+const colors=["#ff4d4d","#4da6ff","#4dff88","#ffd24d","#c44dff"];
+userColors[name]=colors[Math.floor(Math.random()*colors.length)];
+return userColors[name];
+}
+
+function hasBad(text){
+return badWords.some(w=>text.toLowerCase().includes(w));
+}
 
 /* CHAT */
 const messagesRef = db.ref("messages");
 
-messagesRef.on("child_added", (snap) => {
-  const m = snap.val();
-  const box = document.getElementById("messages");
+messagesRef.on("child_added",(snap)=>{
+const m=snap.val();
+const box=document.getElementById("messages");
 
-  const hora = new Date(m.time).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  const div = document.createElement("div");
-  div.style.marginBottom = "8px";
-
-  div.innerHTML = `
-    <div>
-      <b style="color:red">${m.name}</b>
-      <span style="color:#777;font-size:12px;">${hora}</span>
-    </div>
-    <div>${m.text}</div>
-  `;
-
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
+const hora=new Date(m.time).toLocaleTimeString([],{
+hour:"2-digit",minute:"2-digit"
 });
 
-/* ENVIAR MENSAJE */
-function sendMessage() {
-  const name = document.getElementById("name").value.trim();
-  const message = document.getElementById("message").value.trim();
+const div=document.createElement("div");
+div.style.marginBottom="8px";
 
-  if (!name || !message) return;
+div.innerHTML=`
+<div>
+<b style="color:${getColor(m.name)}">${m.name}</b>
+<span style="color:#777;font-size:12px;">${hora}</span>
+</div>
+<div>${m.text}</div>
+`;
 
-  /* 🔥 ANTI-SPAM 3 SEGUNDOS */
-  const now = Date.now();
-  if (now - lastMessageTime < 3000) {
-    return;
-  }
-  lastMessageTime = now;
+box.appendChild(div);
+box.scrollTop=box.scrollHeight;
+});
 
-  if (message.length > 250) {
-    alert("Máximo 250 caracteres");
-    return;
-  }
+/* SEND */
+function sendMessage(){
+let name=document.getElementById("name").value.trim();
+let message=document.getElementById("message").value.trim();
 
-  const allowed = /^[a-zA-ZÀ-ÿ0-9\s.,!?¿¡:;()\-_"'@#%&+=/]*$/;
-  if (!allowed.test(message)) {
-    alert("El mensaje contiene caracteres no permitidos");
-    return;
-  }
+if(!name||!message) return;
 
-  messagesRef.push({
-    name,
-    text: message,
-    time: Date.now()
-  });
+/* slow mode */
+let now=Date.now();
+if(now-lastMessageTime<slowMode) return;
+lastMessageTime=now;
 
-  document.getElementById("message").value = "";
+/* limite */
+if(message.length>250) return;
+
+/* insultos */
+if(hasBad(message)) return;
+
+messagesRef.push({
+name,
+text:message,
+time:Date.now()
+});
+
+document.getElementById("message").value="";
 }
 
 /* ENTER */
-document.getElementById("message")
-.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
+document.getElementById("message").addEventListener("keypress",(e)=>{
+if(e.key==="Enter") sendMessage();
 });
 
 /* VIEWERS */
-const viewersRef = db.ref("viewers");
+db.ref("viewers").child(userId).set(true);
+db.ref("viewers").child(userId).onDisconnect().remove();
 
-viewersRef.child(userId).set(true);
-viewersRef.child(userId).onDisconnect().remove();
-
-viewersRef.on("value", snap => {
-  const data = snap.val();
-  document.getElementById("viewers").innerText =
-    data ? Object.keys(data).length : 0;
+db.ref("viewers").on("value",(snap)=>{
+const d=snap.val();
+document.getElementById("viewers").innerText=d?Object.keys(d).length:0;
 });
 
 /* MEMBERS */
-const membersRef = db.ref("members");
+db.ref("members").child(userId).set({name:"user"});
+db.ref("members").child(userId).onDisconnect().remove();
 
-document.getElementById("name")
-.addEventListener("change", e => {
-  membersRef.child(userId).set({ name: e.target.value });
-});
-
-membersRef.child(userId).onDisconnect().remove();
-
-membersRef.on("value", snap => {
-  const data = snap.val();
-  document.getElementById("membersCount").innerText =
-    data ? Object.keys(data).length : 0;
+db.ref("members").on("value",(snap)=>{
+const d=snap.val();
+document.getElementById("membersCount").innerText=d?Object.keys(d).length:0;
 });
 
 /* LEGAL */
-function openLegal() {
-  document.getElementById("legalModal").style.display = "block";
+function openLegal(){
+document.getElementById("legalModal").style.display="block";
 }
-
-function closeLegal() {
-  document.getElementById("legalModal").style.display = "none";
+function closeLegal(){
+document.getElementById("legalModal").style.display="none";
 }
 
 </script>
