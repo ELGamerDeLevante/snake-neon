@@ -33,36 +33,6 @@ header {
   font-weight: bold;
 }
 
-/* TEXTO INFO */
-.info-text {
-  text-align: center;
-  padding: 15px;
-  color: #aaa;
-}
-
-/* PLAYER */
-.player-container {
-  max-width: 1100px;
-  margin: 20px auto;
-  padding: 0 20px;
-}
-
-.player-container iframe {
-  width: 100%;
-  height: 500px;
-  border: 2px solid red;
-  border-radius: 12px;
-  background: black;
-  box-shadow: 0 0 20px rgba(255,0,0,0.4);
-}
-
-.event-title-live {
-  text-align: center;
-  margin-bottom: 12px;
-  font-size: 26px;
-  font-weight: bold;
-}
-
 /* PANEL INFO */
 .fighters {
   display: grid;
@@ -156,10 +126,6 @@ button {
   .fighters {
     grid-template-columns: 1fr;
   }
-
-  .player-container iframe {
-    height: 250px;
-  }
 }
 
 /* LEGAL */
@@ -193,16 +159,6 @@ button {
 
 <div class="livebar">
   🔴 EL GAMER DE LEVANTE / MMA LIVE
-</div>
-
-
-
-<!-- PANEL -->
-<div class="fighters">
-  <div class="card">MMA</div>
-  <div class="card">BOXEO</div>
-  <div class="card">LUCHA</div>
-  <div class="card">EVENTOS</div>
 </div>
 
 <!-- CHAT -->
@@ -258,29 +214,86 @@ const userId = Math.random().toString(36).substr(2, 9);
 /* CHAT */
 const messagesRef = db.ref("messages");
 
+/* MENSAJES */
 messagesRef.on("child_added", (snap) => {
   const m = snap.val();
   const box = document.getElementById("messages");
 
+  const hora = new Date(m.time).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const avatar = (m.name || "?").charAt(0).toUpperCase();
+
   const div = document.createElement("div");
-  div.style.marginBottom = "8px";
-  div.innerHTML = `<b style="color:red">${m.name}:</b> ${m.text}`;
+  div.style.marginBottom = "10px";
+
+  div.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      
+      <div style="
+        width:30px;
+        height:30px;
+        border-radius:50%;
+        background:red;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        flex-shrink:0;
+      ">
+        ${avatar}
+      </div>
+
+      <div>
+        <div>
+          <b style="color:red">${m.name}</b>
+          <span style="color:#777;font-size:12px;">
+            ${hora}
+          </span>
+        </div>
+
+        <div>${m.text}</div>
+      </div>
+
+    </div>
+  `;
 
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 });
 
+/* ENVIAR MENSAJE */
 function sendMessage() {
-  const name = document.getElementById("name").value;
-  const message = document.getElementById("message").value;
+  const name = document.getElementById("name").value.trim();
+  const message = document.getElementById("message").value.trim();
 
-  if (!name.trim() || !message.trim()) return;
+  if (!name || !message) return;
 
-  messagesRef.push({ name, text: message, time: Date.now() });
+  /* límite caracteres */
+  if (message.length > 250) {
+    alert("Máximo 250 caracteres");
+    return;
+  }
+
+  /* filtro básico */
+  const allowed = /^[a-zA-ZÀ-ÿ0-9\s.,!?¿¡:;()\-_"'@#%&+=/]*$/;
+  if (!allowed.test(message)) {
+    alert("El mensaje contiene caracteres no permitidos");
+    return;
+  }
+
+  messagesRef.push({
+    name,
+    text: message,
+    time: Date.now()
+  });
 
   document.getElementById("message").value = "";
 }
 
+/* ENTER */
 document.getElementById("message")
 .addEventListener("keypress", e => {
   if (e.key === "Enter") sendMessage();
