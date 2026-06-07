@@ -183,6 +183,27 @@ const userId = Math.random().toString(36).substr(2, 9);
 /* 🔒 NICK RESERVADO */
 const RESERVED_NAME = "elgamerdelevante";
 
+/* 🎨 COLORES USUARIOS */
+const userColors = {};
+
+function getUserColor(name) {
+  if (userColors[name]) return userColors[name];
+
+  const colors = [
+    "#ff4d4d",
+    "#4da6ff",
+    "#4dff88",
+    "#ffd24d",
+    "#c44dff",
+    "#ff7aa2"
+  ];
+
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  userColors[name] = color;
+
+  return color;
+}
+
 /* CHAT */
 const messagesRef = db.ref("messages");
 
@@ -199,7 +220,7 @@ div.style.marginBottom="8px";
 
 div.innerHTML=`
 <div>
-<b style="color:red">${m.name}</b>
+<b style="color:${getUserColor(m.name)}">${m.name}</b>
 <span style="color:#777;font-size:12px;">${hora}</span>
 </div>
 <div>${m.text}</div>
@@ -216,9 +237,9 @@ let message=document.getElementById("message").value.trim();
 
 if(!name||!message) return;
 
-/* 🔒 BLOQUEO NICK RESERVADO */
+/* 🔒 BLOQUEO NICK */
 if(name.toLowerCase() === RESERVED_NAME){
-return; // nadie puede usarlo excepto tú (frontend)
+return;
 }
 
 messagesRef.push({
