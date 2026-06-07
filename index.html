@@ -174,7 +174,7 @@ button {
   🔴 EL GAMER DE LEVANTE / MMA LIVE
 </div>
 
-<!-- 🔥 PANEL INFORMACIÓN -->
+<!-- INFO -->
 <div class="info-panel">
 
   <b style="color:red;">INSTRUCCIONES</b><br><br>
@@ -239,6 +239,9 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const userId = Math.random().toString(36).substr(2, 9);
 
+/* 🔥 ANTI-SPAM */
+let lastMessageTime = 0;
+
 /* CHAT */
 const messagesRef = db.ref("messages");
 
@@ -272,6 +275,13 @@ function sendMessage() {
   const message = document.getElementById("message").value.trim();
 
   if (!name || !message) return;
+
+  /* 🔥 ANTI-SPAM 3 SEGUNDOS */
+  const now = Date.now();
+  if (now - lastMessageTime < 3000) {
+    return;
+  }
+  lastMessageTime = now;
 
   if (message.length > 250) {
     alert("Máximo 250 caracteres");
