@@ -222,9 +222,13 @@ Disfruta del show
 
 <script>
 
-firebase.initializeApp({
-databaseURL: "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/"
-});
+const firebaseConfig = {
+  databaseURL: "https://elgamerdelevante-chat-default-rtdb.europe-west1.firebasedatabase.app/"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
 
 const db = firebase.database();
 const userId = Math.random().toString(36).substr(2, 9);
