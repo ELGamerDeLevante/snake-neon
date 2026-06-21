@@ -2,15 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snake Neon Pro+ RATS</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
     background:radial-gradient(circle,#0f0f0f,#000);
@@ -23,39 +19,30 @@ body{
     overflow:hidden;
 }
 
-/* CONTENEDOR */
-.container{
-    width:100%;
-    max-width:600px;
-    text-align:center;
-    padding:10px;
-}
+.container{text-align:center;}
 
 h1{
     color:#00ff88;
     text-shadow:0 0 20px #00ff88;
-    font-size:clamp(18px,4vw,28px);
 }
 
 .stats{
     display:flex;
     justify-content:center;
-    gap:20px;
+    gap:25px;
     margin:10px;
-    font-size:16px;
+    font-size:20px;
 }
 
-/* TABLERO PERFECTO */
 canvas{
     background:#000;
     border:2px solid #00ff88;
     border-radius:15px;
-    box-shadow:0 0 25px rgba(0,255,136,0.3);
-
-    width:min(92vw,92vh);
-    height:min(92vw,92vh);
-    display:block;
-    margin:0 auto;
+    box-shadow:
+        0 0 25px rgba(0,255,136,0.4),
+        0 0 70px rgba(0,255,136,0.2);
+    width:90vmin;
+    height:90vmin;
 }
 
 button{
@@ -69,10 +56,12 @@ button{
     cursor:pointer;
 }
 
-#startScreen,#gameOverScreen{
+button:hover{transform:scale(1.05);}
+
+#startScreen{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.95);
+    background:black;
     display:flex;
     flex-direction:column;
     justify-content:center;
@@ -80,7 +69,22 @@ button{
     z-index:999;
 }
 
-#gameOverScreen{display:none;}
+#gameOverScreen{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.95);
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+#gameOverScreen h1{
+    color:red;
+    font-size:50px;
+    margin-bottom:20px;
+}
 </style>
 </head>
 
@@ -102,8 +106,8 @@ button{
 <h1>Snake Neon Pro+</h1>
 
 <div class="stats">
-    <div>🏆 <span id="score">0</span></div>
-    <div>⭐ <span id="best">0</span></div>
+    <div>🏆 Score: <span id="score">0</span></div>
+    <div>⭐ Récord: <span id="best">0</span></div>
 </div>
 
 <canvas id="game"></canvas>
@@ -125,30 +129,31 @@ const finalScore=document.getElementById("finalScore");
 
 /* GRID */
 let grid=20;
-let size=22;
+let size=25;
 
-/* STATE */
+/* GAME STATE */
 let snake,food,rat,dx,dy,score,best;
 let lastTime=0;
 let acc=0;
 let step=140;
 
-/* 🔊 SONIDOS LIMPIOS */
-let eatSound=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8a4d2f6b7.mp3?filename=apple-bite-crunch-1-6923.mp3");
-let ratSound=new Audio("https://cdn.pixabay.com/download/audio/2021/09/06/audio_5c8f6c9d2b.mp3?filename=coin-collect-retro-100632.mp3");
+/* 🎵 SONIDOS (solo efectos reales, sin voces) */
+let eatSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8a4d2f6b7.mp3?filename=apple-bite-crunch-1-6923.mp3");
+let ratSound = new Audio("https://cdn.pixabay.com/download/audio/2021/09/06/audio_5c8f6c9d2b.mp3?filename=coin-collect-retro-100632.mp3");
 
 eatSound.volume=0.7;
 ratSound.volume=0.8;
 
+/* BEST */
 best=localStorage.getItem("snakeBest")||0;
 bestEl.innerText=best;
 
-/* RESPONSIVE */
+/* RESIZE */
 function resize(){
-    let s=Math.min(innerWidth,innerHeight)*0.92;
-    canvas.width=s;
-    canvas.height=s;
-    grid=canvas.width/size;
+let s=Math.min(innerWidth,innerHeight)*0.9;
+canvas.width=s;
+canvas.height=s;
+grid=canvas.width/size;
 }
 resize();
 addEventListener("resize",resize);
@@ -170,6 +175,7 @@ step=140;
 
 spawnFood();
 spawnRat();
+
 update();
 }
 
@@ -206,36 +212,48 @@ bestEl.innerText=best;
 /* MOVE */
 function move(){
 
-let h={x:snake[0].x+dx,y:snake[0].y+dy};
-snake.unshift(h);
+let head={
+x:snake[0].x+dx,
+y:snake[0].y+dy
+};
 
-/* 🍎 */
-if(h.x===food.x&&h.y===food.y){
-score++;
+snake.unshift(head);
+
+/* 🍎 MANZANA */
+if(head.x===food.x && head.y===food.y){
+score+=1;
 eatSound.currentTime=0;
 eatSound.play().catch(()=>{});
+
 spawnFood();
 spawnRat();
+
 if(step>70) step-=1.2;
 }
 
-/* 🐀 */
-else if(rat&&h.x===rat.x&&h.y===rat.y){
+/* 🐀 RATA BONUS */
+else if(rat && head.x===rat.x && head.y===rat.y){
 score+=3;
 ratSound.currentTime=0;
 ratSound.play().catch(()=>{});
+
 spawnRat();
 }
 
-/* normal */
-else snake.pop();
+/* NORMAL */
+else{
+snake.pop();
+}
 }
 
 /* COLLISION */
 function crash(){
 let h=snake[0];
-return h.x<0||h.y<0||h.x>=size||h.y>=size||
-snake.slice(1).some(s=>s.x===h.x&&s.y===h.y);
+
+return (
+h.x<0||h.y<0||h.x>=size||h.y>=size||
+snake.slice(1).some(s=>s.x===h.x&&s.y===h.y)
+);
 }
 
 /* LOOP */
@@ -249,6 +267,7 @@ acc+=time-lastTime;
 lastTime=time;
 
 while(acc>=step){
+
 move();
 
 if(crash()){
@@ -269,8 +288,8 @@ function draw(){
 ctx.fillStyle="#000";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
-/* REJILLA LIMPIA */
-ctx.strokeStyle="rgba(255,255,255,0.05)";
+/* GRID */
+ctx.strokeStyle="rgba(255,255,255,0.06)";
 for(let i=0;i<canvas.width;i+=grid){
 ctx.beginPath();
 ctx.moveTo(i,0);
@@ -283,34 +302,54 @@ ctx.lineTo(canvas.width,i);
 ctx.stroke();
 }
 
-/* 🍎 */
+/* 🍎 MANZANA */
 let pulse=Math.sin(Date.now()/120)*2;
 
 ctx.shadowBlur=20;
 ctx.shadowColor="red";
+
 ctx.fillStyle="red";
 ctx.beginPath();
-ctx.arc(food.x*grid+grid/2,food.y*grid+grid/2,8+pulse,0,Math.PI*2);
+ctx.arc(
+food.x*grid+grid/2,
+food.y*grid+grid/2,
+8+pulse,
+0,Math.PI*2
+);
 ctx.fill();
 
-/* 🐀 */
+/* 🐀 RATA */
 if(rat){
-ctx.shadowBlur=10;
-ctx.shadowColor="#aaa";
+ctx.shadowBlur=15;
+ctx.shadowColor="#999";
+
 ctx.fillStyle="#bbb";
 ctx.beginPath();
-ctx.arc(rat.x*grid+grid/2,rat.y*grid+grid/2,6+pulse,0,Math.PI*2);
+ctx.arc(
+rat.x*grid+grid/2,
+rat.y*grid+grid/2,
+6+pulse,
+0,Math.PI*2
+);
 ctx.fill();
 }
 
-/* 🐍 */
+/* 🐍 SERPIENTE */
 snake.forEach((s,i)=>{
+
 ctx.shadowBlur=12;
 ctx.shadowColor="#00ff88";
+
 ctx.fillStyle=i===0?"#00ff88":"#00cc66";
 
 ctx.beginPath();
-ctx.roundRect(s.x*grid,s.y*grid,grid-2,grid-2,5);
+ctx.roundRect(
+s.x*grid,
+s.y*grid,
+grid-2,
+grid-2,
+5
+);
 ctx.fill();
 });
 
@@ -319,10 +358,10 @@ update();
 
 /* CONTROL */
 function setDir(d){
-if(d==="up"&&dy===0){dx=0;dy=-1;}
-if(d==="down"&&dy===0){dx=0;dy=1;}
-if(d==="left"&&dx===0){dx=-1;dy=0;}
-if(d==="right"&&dx===0){dx=1;dy=0;}
+if(d==="up" && dy===0){dx=0;dy=-1;}
+if(d==="down" && dy===0){dx=0;dy=1;}
+if(d==="left" && dx===0){dx=-1;dy=0;}
+if(d==="right" && dx===0){dx=1;dy=0;}
 }
 
 addEventListener("keydown",e=>{
