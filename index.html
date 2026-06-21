@@ -39,13 +39,12 @@ h1{
 }
 
 canvas{
-    background:radial-gradient(circle at center,#020202,#000);
+    background:#000;
     border:2px solid #00ff88;
     border-radius:15px;
     box-shadow:
-        0 0 20px rgba(0,255,136,0.4),
-        0 0 60px rgba(0,255,136,0.2),
-        inset 0 0 20px rgba(0,255,136,0.1);
+        0 0 25px rgba(0,255,136,0.4),
+        0 0 70px rgba(0,255,136,0.2);
     width:90vmin;
     height:90vmin;
 }
@@ -164,7 +163,7 @@ let snake,food,dx,dy,score,best,loop,speed;
 best=localStorage.getItem("snakeBest")||0;
 bestEl.innerText=best;
 
-/* CANVAS RESPONSIVE */
+/* RESPONSIVE */
 function resize(){
     let s=Math.min(window.innerWidth,window.innerHeight)*0.9;
     canvas.width=s;
@@ -264,13 +263,16 @@ document.getElementById("finalScore").innerText="Score: "+score;
 return;
 }
 
-/* BACKGROUND (motion blur) */
-ctx.fillStyle="rgba(0,0,0,0.35)";
+/* BACKGROUND */
+ctx.fillStyle="#000";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
-/* GRID SUAVE */
-ctx.strokeStyle="rgba(255,255,255,0.04)";
+/* GRID PRO */
+ctx.strokeStyle="rgba(255,255,255,0.06)";
+ctx.lineWidth=1;
+
 for(let i=0;i<canvas.width;i+=grid){
+
 ctx.beginPath();
 ctx.moveTo(i,0);
 ctx.lineTo(i,canvas.height);
@@ -282,25 +284,13 @@ ctx.lineTo(canvas.width,i);
 ctx.stroke();
 }
 
-/* FOOD NEON */
-let pulse=Math.sin(Date.now()/100)*3;
+/* FOOD */
+let pulse=Math.sin(Date.now()/120)*2;
 
-let gradFood=ctx.createRadialGradient(
-food.x*grid+grid/2,
-food.y*grid+grid/2,
-2,
-food.x*grid+grid/2,
-food.y*grid+grid/2,
-grid
-);
+ctx.shadowBlur=25;
+ctx.shadowColor="red";
 
-gradFood.addColorStop(0,"#ff2d2d");
-gradFood.addColorStop(1,"transparent");
-
-ctx.shadowBlur=30;
-ctx.shadowColor="#ff2d2d";
-
-ctx.fillStyle=gradFood;
+ctx.fillStyle="red";
 ctx.beginPath();
 ctx.arc(
 food.x*grid+grid/2,
@@ -310,23 +300,13 @@ food.y*grid+grid/2,
 );
 ctx.fill();
 
-/* SNAKE NEÓN GRADIENTE */
+/* SNAKE */
 snake.forEach((s,i)=>{
 
-let grad = ctx.createLinearGradient(
-s.x*grid,
-s.y*grid,
-s.x*grid+grid,
-s.y*grid+grid
-);
-
-grad.addColorStop(0,i===0?"#00ff88":"#00cc66");
-grad.addColorStop(1,"#004d33");
-
-ctx.shadowBlur=20;
+ctx.shadowBlur=15;
 ctx.shadowColor="#00ff88";
 
-ctx.fillStyle=grad;
+ctx.fillStyle=i===0?"#00ff88":"#00cc66";
 
 ctx.beginPath();
 ctx.roundRect(
@@ -334,11 +314,10 @@ s.x*grid,
 s.y*grid,
 grid-2,
 grid-2,
-6
+5
 );
 ctx.fill();
 
-/* ojos */
 if(i===0){
 ctx.shadowBlur=0;
 ctx.fillStyle="black";
@@ -350,7 +329,7 @@ ctx.fillRect(s.x*grid+grid/1.6,s.y*grid+grid/3,3,3);
 update();
 }
 
-/* CONTROL */
+/* CONTROLES */
 function setDir(d){
 if(d==="up" && dy===0){dx=0;dy=-1;}
 if(d==="down" && dy===0){dx=0;dy=1;}
