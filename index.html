@@ -180,7 +180,29 @@ let step=140;
 /* 🎵 SONIDOS */
 let eatSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8a4d2f6b7.mp3?filename=apple-bite-crunch-1-6923.mp3");
 let ratSound = new Audio("https://cdn.pixabay.com/download/audio/2021/09/06/audio_5c8f6c9d2b.mp3?filename=coin-collect-retro-100632.mp3");
+/* 🎵 AUDIO CONTROL */
+let audioUnlocked = false;
 
+/* desbloqueo real de audio (móvil + PC) */
+document.addEventListener("click", () => {
+    if (!audioUnlocked) {
+        audioUnlocked = true;
+        bgMusic.play().catch(()=>{});
+    }
+});
+
+/* función segura para sonidos */
+function playSound(sound){
+    if(audioUnlocked){
+        sound.currentTime = 0;
+        sound.play().catch(()=>{});
+    }
+}
+
+/* 🎶 MÚSICA DE FONDO */
+let bgMusic = new Audio("https://cdn.pixabay.com/download/audio/2022/10/25/audio_3a1d5c7b6c.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
 /* BEST */
 best=localStorage.getItem("snakeBest")||0;
 bestEl.innerText=best;
