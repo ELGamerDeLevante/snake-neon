@@ -215,7 +215,7 @@ document.getElementById("startScreen").style.display="none";
 gameOverScreen.style.display="none";
 reset();
 requestAnimationFrame(loop);
-}
+bgMusic.play().catch(()=>{});}
 
 /* RESET */
 function reset(){
