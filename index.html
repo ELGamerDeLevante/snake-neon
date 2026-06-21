@@ -6,7 +6,11 @@
 <title>Snake Neon Pro+</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
 body{
     background:radial-gradient(circle,#0f0f0f,#000);
@@ -19,7 +23,9 @@ body{
     overflow:hidden;
 }
 
-.container{text-align:center;}
+.container{
+    text-align:center;
+}
 
 h1{
     color:#00ff88;
@@ -39,6 +45,8 @@ canvas{
     border:2px solid #00ff88;
     border-radius:15px;
     box-shadow:0 0 40px #00ff88;
+    width:90vmin;
+    height:90vmin;
 }
 
 button{
@@ -52,9 +60,10 @@ button{
     cursor:pointer;
 }
 
-button:hover{transform:scale(1.05);}
+button:hover{
+    transform:scale(1.05);
+}
 
-/* START */
 #startScreen{
     position:fixed;
     inset:0;
@@ -66,7 +75,6 @@ button:hover{transform:scale(1.05);}
     z-index:999;
 }
 
-/* GAME OVER FULLSCREEN */
 #gameOverScreen{
     position:fixed;
     inset:0;
@@ -84,7 +92,6 @@ button:hover{transform:scale(1.05);}
     margin-bottom:20px;
 }
 
-/* CONTROLES MOVIL */
 .controls{
     display:none;
     margin-top:10px;
@@ -125,7 +132,7 @@ button:hover{transform:scale(1.05);}
         <div>⭐ Récord: <span id="best">0</span></div>
     </div>
 
-    <canvas id="game" width="500" height="500"></canvas>
+    <canvas id="game"></canvas>
 
     <button onclick="startGame()">Reiniciar</button>
 
@@ -145,18 +152,32 @@ button:hover{transform:scale(1.05);}
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
 
-const grid=20;
-const size=25;
+const scoreEl=document.getElementById("score");
+const bestEl=document.getElementById("best");
+const gameOverScreen=document.getElementById("gameOverScreen");
+
+let grid=20;
+let size=25;
 
 let snake,food,dx,dy,score,best,loop,speed;
 
 best=localStorage.getItem("snakeBest")||0;
-document.getElementById("best").innerText=best;
+bestEl.innerText=best;
+
+/* 🔥 CANVAS RESPONSIVE */
+function resize(){
+    let s=Math.min(window.innerWidth,window.innerHeight)*0.9;
+    canvas.width=s;
+    canvas.height=s;
+    grid=canvas.width/size;
+}
+resize();
+window.addEventListener("resize",resize);
 
 /* START */
 function startGame(){
 document.getElementById("startScreen").style.display="none";
-document.getElementById("gameOverScreen").style.display="none";
+gameOverScreen.style.display="none";
 reset();
 }
 
@@ -164,7 +185,8 @@ reset();
 function reset(){
 
 snake=[{x:10,y:10}];
-dx=1;dy=0;
+dx=1;
+dy=0;
 score=0;
 speed=140;
 
@@ -173,21 +195,21 @@ spawnFood();
 clearInterval(loop);
 loop=setInterval(game,speed);
 
-updateUI();
+update();
 }
 
-/* UI */
-function updateUI(){
-document.getElementById("score").innerText=score;
+/* SCORE */
+function update(){
+scoreEl.innerText=score;
 
 if(score>best){
 best=score;
 localStorage.setItem("snakeBest",best);
-document.getElementById("best").innerText=best;
+bestEl.innerText=best;
 }
 }
 
-/* COMIDA */
+/* FOOD */
 function spawnFood(){
 food={
 x:Math.floor(Math.random()*size),
@@ -195,7 +217,7 @@ y:Math.floor(Math.random()*size)
 };
 }
 
-/* MOVIMIENTO */
+/* MOVE */
 function move(){
 
 let head={
@@ -211,7 +233,7 @@ score++;
 spawnFood();
 
 /* dificultad suave */
-if(speed>70){
+if(speed>60){
 speed-=2;
 clearInterval(loop);
 loop=setInterval(game,speed);
@@ -221,9 +243,10 @@ snake.pop();
 }
 }
 
-/* COLISION LIMPIA */
+/* COLLISION IA LIMPIA */
 function collision(){
 let h=snake[0];
+
 return (
 h.x<0||h.y<0||h.x>=size||h.y>=size||
 snake.slice(1).some(s=>s.x===h.x&&s.y===h.y)
@@ -238,32 +261,31 @@ move();
 if(collision()){
 clearInterval(loop);
 
+gameOverScreen.style.display="flex";
 document.getElementById("finalScore").innerText="Score: "+score;
-
-document.getElementById("gameOverScreen").style.display="flex";
 
 return;
 }
 
-/* FONDO */
+/* BACKGROUND */
 ctx.fillStyle="#000";
-ctx.fillRect(0,0,500,500);
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
-/* GRID SUAVE */
+/* GRID */
 ctx.strokeStyle="#111";
-for(let i=0;i<500;i+=grid){
+for(let i=0;i<canvas.width;i+=grid){
 ctx.beginPath();
 ctx.moveTo(i,0);
-ctx.lineTo(i,500);
+ctx.lineTo(i,canvas.height);
 ctx.stroke();
 
 ctx.beginPath();
 ctx.moveTo(0,i);
-ctx.lineTo(500,i);
+ctx.lineTo(canvas.width,i);
 ctx.stroke();
 }
 
-/* COMIDA PULSANTE */
+/* FOOD PULSANTE */
 let pulse=Math.sin(Date.now()/120)*2;
 
 ctx.shadowBlur=25;
@@ -272,9 +294,9 @@ ctx.shadowColor="red";
 ctx.fillStyle="red";
 ctx.beginPath();
 ctx.arc(
-food.x*grid+10,
-food.y*grid+10,
-8+pulse,
+food.x*grid+grid/2,
+food.y*grid+grid/2,
+grid/2-3+pulse,
 0,Math.PI*2
 );
 ctx.fill();
@@ -288,21 +310,27 @@ ctx.shadowColor="#00ff88";
 ctx.fillStyle=i===0?"#00ff88":"#00cc66";
 
 ctx.beginPath();
-ctx.roundRect(s.x*grid,s.y*grid,18,18,5);
+ctx.roundRect(
+s.x*grid,
+s.y*grid,
+grid-2,
+grid-2,
+5
+);
 ctx.fill();
 
 if(i===0){
 ctx.shadowBlur=0;
 ctx.fillStyle="black";
-ctx.fillRect(s.x*grid+5,s.y*grid+6,3,3);
-ctx.fillRect(s.x*grid+12,s.y*grid+6,3,3);
+ctx.fillRect(s.x*grid+grid/3,s.y*grid+grid/3,3,3);
+ctx.fillRect(s.x*grid+grid/1.6,s.y*grid+grid/3,3,3);
 }
 });
 
-updateUI();
+update();
 }
 
-/* DIRECCION */
+/* CONTROL */
 function setDir(d){
 if(d==="up" && dy===0){dx=0;dy=-1;}
 if(d==="down" && dy===0){dx=0;dy=1;}
@@ -310,7 +338,6 @@ if(d==="left" && dx===0){dx=-1;dy=0;}
 if(d==="right" && dx===0){dx=1;dy=0;}
 }
 
-/* TECLADO */
 document.addEventListener("keydown",e=>{
 if(e.key==="ArrowUp")setDir("up");
 if(e.key==="ArrowDown")setDir("down");
