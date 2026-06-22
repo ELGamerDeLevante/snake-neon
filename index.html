@@ -97,21 +97,110 @@ button.main-btn:hover{transform:scale(1.05);}
     border:none;color:black;font-weight:bold;cursor:pointer;
 }
 @media(max-width:768px){.controls{display:flex;}}
+
+/* Ranking */
+#rankingScreen{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.97);
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:998;
+    gap:12px;
+    padding:20px;
+}
+#rankingScreen h2{color:#00ff88;font-size:28px;text-shadow:0 0 15px #00ff88;}
+#rankingTable{width:100%;max-width:380px;}
+#rankingTable table{width:100%;border-collapse:collapse;}
+#rankingTable th{color:#00ff88;padding:8px;border-bottom:1px solid #00ff88;font-size:14px;}
+#rankingTable td{padding:8px;text-align:center;font-size:14px;border-bottom:1px solid #222;}
+#rankingTable tr:first-child td{color:gold;font-weight:bold;}
+#rankingTable tr:nth-child(2) td{color:silver;}
+#rankingTable tr:nth-child(3) td{color:#cd7f32;}
+
+/* Name input */
+#nameScreen{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.97);
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    gap:16px;
+}
+#nameScreen h2{color:#00ff88;font-size:26px;}
+#nameScreen p{color:#888;font-size:14px;}
+#nameInput{
+    padding:12px 20px;
+    border-radius:10px;
+    border:2px solid #00ff88;
+    background:#111;
+    color:white;
+    font-size:18px;
+    text-align:center;
+    width:260px;
+    outline:none;
+}
+.btn-row{display:flex;gap:12px;}
+
+/* Ranking button */
+#rankingBtn{
+    position:fixed;
+    top:12px;
+    right:12px;
+    background:#00ff88;
+    color:black;
+    border:none;
+    border-radius:10px;
+    padding:8px 14px;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:14px;
+    z-index:500;
+}
 </style>
 </head>
 <body>
 
-<div id="startScreen">
-    <h1>🐍 SNAKE PRO RATS</h1>
-    
-    <button class="main-btn" onclick="startGame()">JUGAR</button>
+<!-- Pantalla nombre -->
+<div id="nameScreen">
+    <h2>🏆 NUEVO RÉCORD</h2>
+    <p>¡Entra en el Top 10! ¿Cómo te llamas?</p>
+    <input id="nameInput" type="text" maxlength="16" placeholder="Tu nombre..." autocomplete="off"/>
+    <div class="btn-row">
+        <button class="main-btn" onclick="submitScore()">GUARDAR</button>
+        <button class="main-btn" style="background:#555;color:white;" onclick="skipScore()">SALTAR</button>
+    </div>
 </div>
 
+<!-- Pantalla ranking -->
+<div id="rankingScreen">
+    <h2>🏆 TOP 10 GLOBAL</h2>
+    <div id="rankingTable"><p style="color:#888;">Cargando...</p></div>
+    <button class="main-btn" onclick="closeRanking()">CERRAR</button>
+</div>
+
+<!-- Pantalla inicio -->
+<div id="startScreen">
+    <h1>🐍 SNAKE PRO RATS 🐀</h1>
+    <button class="main-btn" onclick="startGame()">JUGAR</button>
+    <button class="main-btn" style="background:#1a1a2e;color:#00ff88;border:1px solid #00ff88;" onclick="showRanking()">🏆 RANKING</button>
+</div>
+
+<!-- Pantalla game over -->
 <div id="gameOverScreen">
     <h1>💀 GAME OVER</h1>
     <div id="finalScore" style="font-size:22px;"></div>
     <button class="main-btn" onclick="startGame()">REINTENTAR</button>
+    <button class="main-btn" style="background:#1a1a2e;color:#00ff88;border:1px solid #00ff88;" onclick="showRanking()">🏆 RANKING</button>
 </div>
+
+<!-- Botón ranking flotante -->
+<button id="rankingBtn" onclick="showRanking()">🏆 TOP 10</button>
 
 <div class="container">
     <h1>Snake Pro Rats</h1>
@@ -122,7 +211,6 @@ button.main-btn:hover{transform:scale(1.05);}
     </div>
     <canvas id="game"></canvas>
     <br>
-    
     <div class="controls">
         <div class="row"><button onclick="setDir('up')">⬆️</button></div>
         <div class="row">
@@ -134,6 +222,87 @@ button.main-btn:hover{transform:scale(1.05);}
 </div>
 
 <script>
+/* ===== SUPABASE CONFIG ===== */
+const SUPABASE_URL = "https://duegllzmzbhxjqjwqswd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EEVHGljg4xbAV3pwG7I27g_x7QR6LB3";
+
+async function getTopScores(){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=nombre,puntuacion&order=puntuacion.desc&limit=10`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    return await res.json();
+}
+
+async function saveScore(nombre, puntuacion){
+    await fetch(`${SUPABASE_URL}/rest/v1/scores`, {
+        method: "POST",
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({ nombre, puntuacion })
+    });
+}
+
+async function isTopScore(puntuacion){
+    const scores = await getTopScores();
+    if(scores.length < 10) return true;
+    return puntuacion > scores[scores.length - 1].puntuacion;
+}
+
+/* ===== RANKING UI ===== */
+async function showRanking(){
+    document.getElementById("rankingScreen").style.display = "flex";
+    document.getElementById("rankingTable").innerHTML = "<p style='color:#888;'>Cargando...</p>";
+    const scores = await getTopScores();
+    if(!scores || scores.length === 0){
+        document.getElementById("rankingTable").innerHTML = "<p style='color:#888;'>Aún no hay puntuaciones. ¡Sé el primero!</p>";
+        return;
+    }
+    const medals = ["🥇","🥈","🥉"];
+    let html = "<table><tr><th>#</th><th>Nombre</th><th>Puntuación</th></tr>";
+    scores.forEach((s, i) => {
+        html += `<tr><td>${medals[i] || (i+1)}</td><td>${s.nombre}</td><td>${s.puntuacion}</td></tr>`;
+    });
+    html += "</table>";
+    document.getElementById("rankingTable").innerHTML = html;
+}
+
+function closeRanking(){
+    document.getElementById("rankingScreen").style.display = "none";
+}
+
+let pendingScore = 0;
+
+async function checkAndPromptScore(){
+    const top = await isTopScore(score);
+    if(top && score > 0){
+        pendingScore = score;
+        document.getElementById("nameInput").value = "";
+        document.getElementById("nameScreen").style.display = "flex";
+    } else {
+        document.getElementById("gameOverScreen").style.display = "flex";
+    }
+}
+
+async function submitScore(){
+    const nombre = document.getElementById("nameInput").value.trim();
+    if(!nombre) return;
+    document.getElementById("nameScreen").style.display = "none";
+    await saveScore(nombre, pendingScore);
+    document.getElementById("gameOverScreen").style.display = "flex";
+}
+
+function skipScore(){
+    document.getElementById("nameScreen").style.display = "none";
+    document.getElementById("gameOverScreen").style.display = "flex";
+}
+
 /* ===== CANVAS ===== */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -174,19 +343,15 @@ function toggleMusic(){
     if(masterGainNode) masterGainNode.gain.value = musicMuted ? 0 : 0.08;
 }
 
-/* --- Música de fondo: bajo + arpegio sintetizados --- */
 function startMusic(){
     stopMusic();
     musicRunning = true;
-
     masterGainNode = AC.createGain();
     masterGainNode.gain.value = musicMuted ? 0 : 0.08;
     masterGainNode.connect(AC.destination);
-
     const bassNotes = [55, 55, 65.41, 55];
     const arpNotes  = [220, 261.63, 329.63, 392, 329.63, 261.63, 220, 196];
-    const beat = 60 / 128; // 128 BPM
-
+    const beat = 60 / 128;
     function scheduleBass(t, idx){
         if(!musicRunning) return;
         const osc = AC.createOscillator();
@@ -195,14 +360,11 @@ function startMusic(){
         osc.frequency.value = bassNotes[idx % bassNotes.length];
         g.gain.setValueAtTime(0.9, t);
         g.gain.exponentialRampToValueAtTime(0.01, t + beat * 1.8);
-        osc.connect(g);
-        g.connect(masterGainNode);
-        osc.start(t);
-        osc.stop(t + beat * 2);
+        osc.connect(g); g.connect(masterGainNode);
+        osc.start(t); osc.stop(t + beat * 2);
         const delay = Math.max(0, (t - AC.currentTime + beat * 2) * 1000 - 60);
         setTimeout(() => scheduleBass(t + beat * 2, idx + 1), delay);
     }
-
     function scheduleArp(t, idx){
         if(!musicRunning) return;
         const osc = AC.createOscillator();
@@ -211,14 +373,11 @@ function startMusic(){
         osc.frequency.value = arpNotes[idx % arpNotes.length];
         g.gain.setValueAtTime(0.5, t);
         g.gain.exponentialRampToValueAtTime(0.01, t + beat * 0.45);
-        osc.connect(g);
-        g.connect(masterGainNode);
-        osc.start(t);
-        osc.stop(t + beat * 0.5);
+        osc.connect(g); g.connect(masterGainNode);
+        osc.start(t); osc.stop(t + beat * 0.5);
         const delay = Math.max(0, (t - AC.currentTime + beat * 0.5) * 1000 - 60);
         setTimeout(() => scheduleArp(t + beat * 0.5, idx + 1), delay);
     }
-
     const now = AC.currentTime + 0.1;
     scheduleBass(now, 0);
     scheduleArp(now, 0);
@@ -229,96 +388,58 @@ function stopMusic(){
     masterGainNode = null;
 }
 
-/* --- Sonido mordisco (comer comida roja) --- */
 function playEat(){
     const t = AC.currentTime;
     [440, 520, 660].forEach((freq, i) => {
-        const osc = AC.createOscillator();
-        const g   = AC.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
+        const osc = AC.createOscillator(); const g = AC.createGain();
+        osc.type = "sine"; osc.frequency.value = freq;
         const st = t + i * 0.04;
-        g.gain.setValueAtTime(0.4, st);
-        g.gain.exponentialRampToValueAtTime(0.001, st + 0.12);
-        osc.connect(g);
-        g.connect(AC.destination);
-        osc.start(st);
-        osc.stop(st + 0.13);
+        g.gain.setValueAtTime(0.4, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.12);
+        osc.connect(g); g.connect(AC.destination); osc.start(st); osc.stop(st + 0.13);
     });
 }
 
-/* --- Sonido rata (+3 puntos) --- */
 function playRat(){
     const t = AC.currentTime;
     [300, 450, 600, 750].forEach((freq, i) => {
-        const osc = AC.createOscillator();
-        const g   = AC.createGain();
-        osc.type = "triangle";
-        osc.frequency.value = freq;
+        const osc = AC.createOscillator(); const g = AC.createGain();
+        osc.type = "triangle"; osc.frequency.value = freq;
         const st = t + i * 0.05;
-        g.gain.setValueAtTime(0.5, st);
-        g.gain.exponentialRampToValueAtTime(0.001, st + 0.1);
-        osc.connect(g);
-        g.connect(AC.destination);
-        osc.start(st);
-        osc.stop(st + 0.12);
+        g.gain.setValueAtTime(0.5, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.1);
+        osc.connect(g); g.connect(AC.destination); osc.start(st); osc.stop(st + 0.12);
     });
 }
 
-/* --- Sonido impacto / Game Over --- */
 function playImpact(){
     const t = AC.currentTime;
-
-    /* Ruido grave filtrado */
-    const buf    = AC.createBuffer(1, AC.sampleRate * 0.6, AC.sampleRate);
-    const data   = buf.getChannelData(0);
+    const buf = AC.createBuffer(1, AC.sampleRate * 0.6, AC.sampleRate);
+    const data = buf.getChannelData(0);
     for(let i = 0; i < data.length; i++){
         data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (AC.sampleRate * 0.15));
     }
-    const src    = AC.createBufferSource();
-    const filter = AC.createBiquadFilter();
-    const gNoise = AC.createGain();
-    filter.type = "lowpass";
-    filter.frequency.value = 400;
-    src.buffer = buf;
-    src.connect(filter);
-    filter.connect(gNoise);
-    gNoise.connect(AC.destination);
-    gNoise.gain.setValueAtTime(1.2, t);
-    gNoise.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    src.start(t);
-    src.stop(t + 0.6);
-
-    /* Graves descendentes */
+    const src = AC.createBufferSource(); const filter = AC.createBiquadFilter(); const gNoise = AC.createGain();
+    filter.type = "lowpass"; filter.frequency.value = 400;
+    src.buffer = buf; src.connect(filter); filter.connect(gNoise); gNoise.connect(AC.destination);
+    gNoise.gain.setValueAtTime(1.2, t); gNoise.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    src.start(t); src.stop(t + 0.6);
     [100, 80, 60].forEach((freq, i) => {
-        const osc = AC.createOscillator();
-        const g   = AC.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
+        const osc = AC.createOscillator(); const g = AC.createGain();
+        osc.type = "sine"; osc.frequency.value = freq;
         const st = t + i * 0.05;
-        g.gain.setValueAtTime(0.6, st);
-        g.gain.exponentialRampToValueAtTime(0.001, st + 0.5);
-        osc.connect(g);
-        g.connect(AC.destination);
-        osc.start(st);
-        osc.stop(t + 0.65);
+        g.gain.setValueAtTime(0.6, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.5);
+        osc.connect(g); g.connect(AC.destination); osc.start(st); osc.stop(t + 0.65);
     });
 }
 
-/* ===== LÓGICA DEL JUEGO ===== */
+/* ===== LÓGICA ===== */
 function spawnFood(){
-    food = {
-        x: Math.floor(Math.random() * GRID_CELLS),
-        y: Math.floor(Math.random() * GRID_CELLS)
-    };
+    food = { x: Math.floor(Math.random() * GRID_CELLS), y: Math.floor(Math.random() * GRID_CELLS) };
 }
-
 function spawnRat(){
     rat = Math.random() < 0.35
         ? {x: Math.floor(Math.random() * GRID_CELLS), y: Math.floor(Math.random() * GRID_CELLS)}
         : null;
 }
-
 function updateScore(){
     scoreEl.innerText = score;
     if(score > best){
@@ -332,7 +453,6 @@ function startGame(){
     if(AC.state === "suspended") AC.resume();
     document.getElementById("startScreen").style.display = "none";
     gameOverScreen.style.display = "none";
-
     snake   = [{x: 10, y: 10}];
     dx      = 1; dy = 0;
     nextDir = {x: 1, y: 0};
@@ -341,11 +461,7 @@ function startGame(){
     acc     = 0;
     lastTime = 0;
     running = true;
-
-    spawnFood();
-    spawnRat();
-    updateScore();
-    startMusic();
+    spawnFood(); spawnRat(); updateScore(); startMusic();
     requestAnimationFrame(loop);
 }
 
@@ -364,21 +480,14 @@ document.addEventListener("keydown", e => {
 });
 
 function move(){
-    dx = nextDir.x;
-    dy = nextDir.y;
+    dx = nextDir.x; dy = nextDir.y;
     const head = {x: snake[0].x + dx, y: snake[0].y + dy};
     snake.unshift(head);
-
     if(head.x === food.x && head.y === food.y){
-        score++;
-        playEat();
-        spawnFood();
-        spawnRat();
+        score++; playEat(); spawnFood(); spawnRat();
         if(step > 70) step -= 1.2;
     } else if(rat && head.x === rat.x && head.y === rat.y){
-        score += 3;
-        playRat();
-        spawnRat();
+        score += 3; playRat(); spawnRat();
     } else {
         snake.pop();
     }
@@ -393,11 +502,9 @@ function crash(){
 function loop(time){
     if(!running) return;
     requestAnimationFrame(loop);
-
     if(!lastTime) lastTime = time;
     acc += time - lastTime;
     lastTime = time;
-
     while(acc >= step){
         move();
         if(crash()){
@@ -405,44 +512,33 @@ function loop(time){
             stopMusic();
             playImpact();
             finalScoreEl.innerText = "Score: " + score;
-            gameOverScreen.style.display = "flex";
+            checkAndPromptScore();
             return;
         }
         acc -= step;
     }
-
     draw();
 }
 
-/* ===== DIBUJO ===== */
 function draw(){
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    /* Grid */
     ctx.strokeStyle = "rgba(255,255,255,0.05)";
     for(let i = 0; i < canvas.width; i += gridSize){
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
     }
-
     const pulse = Math.sin(Date.now() / 120) * 2;
-
-    /* Comida */
     ctx.shadowBlur = 20; ctx.shadowColor = "red"; ctx.fillStyle = "red";
     ctx.beginPath();
     ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, 8 + pulse, 0, Math.PI * 2);
     ctx.fill();
-
-    /* Rata */
     if(rat){
         ctx.shadowBlur = 10; ctx.shadowColor = "#aaa"; ctx.fillStyle = "#bbb";
         ctx.beginPath();
         ctx.arc(rat.x * gridSize + gridSize / 2, rat.y * gridSize + gridSize / 2, 6 + pulse, 0, Math.PI * 2);
         ctx.fill();
     }
-
-    /* Serpiente */
     snake.forEach((s, i) => {
         ctx.shadowBlur = 12; ctx.shadowColor = "#00ff88";
         ctx.fillStyle = i === 0 ? "#00ff88" : "#00cc66";
@@ -454,7 +550,6 @@ function draw(){
         }
         ctx.fill();
     });
-
     updateScore();
 }
 </script>
