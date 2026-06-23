@@ -398,29 +398,388 @@ function loop(time){
     }
     draw();
 }
+/* ===== HELPERS GRÁFICOS REALISTAS ===== */
+
+// Ángulo de una dirección dx,dy en radianes
+function angOf(dx,dy){ return Math.atan2(dy,dx); }
+
+// Dibuja una manzana 3D con brillo especular, sombra de contacto, tallo y hoja
+function drawApple(cx,cy,r,pulse){
+    const R=r+pulse;
+    // sombra de contacto en el suelo
+    ctx.save();
+    ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(0,0,0,0.45)";
+    ctx.beginPath();
+    ctx.ellipse(cx,cy+R*0.85,R*0.9,R*0.32,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // glow ambiental
+    ctx.save();
+    ctx.shadowBlur=18; ctx.shadowColor="#ff2d2d";
+
+    // cuerpo: gradiente radial desplazado para dar volumen esférico
+    const grad=ctx.createRadialGradient(cx-R*0.35,cy-R*0.4,R*0.15,cx,cy,R*1.15);
+    grad.addColorStop(0,"#ff8a7a");
+    grad.addColorStop(0.35,"#ff3b30");
+    grad.addColorStop(0.75,"#c2160f");
+    grad.addColorStop(1,"#7a0a06");
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,R,R*0.96,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // sombra interna lateral (lado opuesto a la luz)
+    ctx.save();
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=0.35;
+    const shGrad=ctx.createRadialGradient(cx+R*0.5,cy+R*0.4,0,cx+R*0.5,cy+R*0.4,R*1.1);
+    shGrad.addColorStop(0,"#3d0905");
+    shGrad.addColorStop(1,"rgba(61,9,5,0)");
+    ctx.fillStyle=shGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,R,R*0.96,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // brillo especular
+    ctx.save();
+    ctx.globalAlpha=0.85;
+    ctx.fillStyle="#ffffff";
+    ctx.beginPath();
+    ctx.ellipse(cx-R*0.38,cy-R*0.42,R*0.28,R*0.16,-0.5,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // tallo
+    ctx.save();
+    ctx.strokeStyle="#5a3a1e";
+    ctx.lineWidth=Math.max(1.5,R*0.18);
+    ctx.lineCap="round";
+    ctx.beginPath();
+    ctx.moveTo(cx+R*0.05,cy-R*0.85);
+    ctx.quadraticCurveTo(cx+R*0.25,cy-R*1.25,cx+R*0.15,cy-R*1.45);
+    ctx.stroke();
+    ctx.restore();
+
+    // hoja
+    ctx.save();
+    ctx.fillStyle="#3baa3b";
+    ctx.beginPath();
+    ctx.ellipse(cx+R*0.42,cy-R*1.18,R*0.32,R*0.16,0.6,0,Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle="#2a7a2a";
+    ctx.lineWidth=0.6;
+    ctx.stroke();
+    ctx.restore();
+}
+
+// Dibuja una rata 3D: cuerpo ovoide con sombreado, cabeza, orejas, cola y patas
+function drawRatSprite(cx,cy,r,pulse,t){
+    const R=r+pulse;
+    const wiggle=Math.sin(t/90)*0.15;
+
+    ctx.save();
+    ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(0,0,0,0.4)";
+    ctx.beginPath();
+    ctx.ellipse(cx,cy+R*0.75,R*1.3,R*0.4,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.shadowBlur=10; ctx.shadowColor="#888";
+
+    // cola
+    ctx.strokeStyle="#c98a8a";
+    ctx.lineWidth=Math.max(1.2,R*0.14);
+    ctx.lineCap="round";
+    ctx.beginPath();
+    ctx.moveTo(cx-R*0.9,cy+R*0.1);
+    ctx.quadraticCurveTo(cx-R*1.6,cy+R*0.5+wiggle*R,cx-R*2.1,cy-R*0.1);
+    ctx.stroke();
+
+    // cuerpo (gradiente para volumen)
+    const bodyGrad=ctx.createRadialGradient(cx-R*0.2,cy-R*0.35,R*0.1,cx,cy,R*1.3);
+    bodyGrad.addColorStop(0,"#e0e0e0");
+    bodyGrad.addColorStop(0.5,"#aaaaaa");
+    bodyGrad.addColorStop(1,"#5a5a5a");
+    ctx.fillStyle=bodyGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,R*1.05,R*0.85,0,0,Math.PI*2);
+    ctx.fill();
+
+    // sombra de contacto inferior del cuerpo
+    ctx.save();
+    ctx.globalAlpha=0.3;
+    const us=ctx.createRadialGradient(cx+R*0.3,cy+R*0.4,0,cx+R*0.3,cy+R*0.4,R*1.1);
+    us.addColorStop(0,"#1a1a1a");
+    us.addColorStop(1,"rgba(26,26,26,0)");
+    ctx.fillStyle=us;
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,R*1.05,R*0.85,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // cabeza
+    const headX=cx+R*0.95, headY=cy-R*0.05;
+    const headGrad=ctx.createRadialGradient(headX-R*0.15,headY-R*0.2,R*0.05,headX,headY,R*0.65);
+    headGrad.addColorStop(0,"#e8e8e8");
+    headGrad.addColorStop(1,"#999999");
+    ctx.fillStyle=headGrad;
+    ctx.beginPath();
+    ctx.ellipse(headX,headY,R*0.55,R*0.45,0,0,Math.PI*2);
+    ctx.fill();
+
+    // orejas
+    ctx.fillStyle="#d99a9a";
+    ctx.beginPath();
+    ctx.ellipse(headX+R*0.15,headY-R*0.45,R*0.22,R*0.26,0.3,0,Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(headX-R*0.25,headY-R*0.42,R*0.2,R*0.24,-0.3,0,Math.PI*2);
+    ctx.fill();
+
+    // hocico y nariz
+    ctx.fillStyle="#ddd";
+    ctx.beginPath();
+    ctx.ellipse(headX+R*0.55,headY+R*0.1,R*0.2,R*0.14,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle="#ff6fa3";
+    ctx.beginPath();
+    ctx.arc(headX+R*0.72,headY+R*0.1,R*0.08,0,Math.PI*2);
+    ctx.fill();
+
+    // ojo
+    ctx.fillStyle="#111";
+    ctx.beginPath();
+    ctx.arc(headX+R*0.15,headY-R*0.05,R*0.09,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle="#fff";
+    ctx.beginPath();
+    ctx.arc(headX+R*0.18,headY-R*0.08,R*0.03,0,Math.PI*2);
+    ctx.fill();
+
+    // patitas
+    ctx.fillStyle="#999";
+    [[-R*0.5,R*0.6],[R*0.3,R*0.65]].forEach(p=>{
+        ctx.beginPath();
+        ctx.ellipse(cx+p[0],cy+p[1],R*0.16,R*0.1,0,0,Math.PI*2);
+        ctx.fill();
+    });
+
+    ctx.restore();
+}
+
 function draw(){
+    const t=Date.now();
     ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle="rgba(255,255,255,0.05)";
     for(let i=0;i<canvas.width;i+=gridSize){
         ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke();
     }
-    const pulse=Math.sin(Date.now()/120)*2;
-    ctx.shadowBlur=20; ctx.shadowColor="red"; ctx.fillStyle="red";
-    ctx.beginPath(); ctx.arc(food.x*gridSize+gridSize/2,food.y*gridSize+gridSize/2,8+pulse,0,Math.PI*2); ctx.fill();
+    const pulse=Math.sin(t/120)*2;
+
+    // comida realista
+    drawApple(food.x*gridSize+gridSize/2, food.y*gridSize+gridSize/2, gridSize*0.4, pulse*0.3);
+
+    // rata realista
     if(rat){
-        ctx.shadowBlur=10; ctx.shadowColor="#aaa"; ctx.fillStyle="#bbb";
-        ctx.beginPath(); ctx.arc(rat.x*gridSize+gridSize/2,rat.y*gridSize+gridSize/2,6+pulse,0,Math.PI*2); ctx.fill();
+        drawRatSprite(rat.x*gridSize+gridSize/2, rat.y*gridSize+gridSize/2, gridSize*0.42, pulse*0.2, t);
     }
-    snake.forEach((s,i)=>{
-        ctx.shadowBlur=12; ctx.shadowColor="#00ff88";
-        ctx.fillStyle=i===0?"#00ff88":"#00cc66";
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(s.x*gridSize,s.y*gridSize,gridSize-2,gridSize-2,5);
-        else ctx.rect(s.x*gridSize,s.y*gridSize,gridSize-2,gridSize-2);
-        ctx.fill();
-    });
+
+    drawSnake(t);
     updateScore();
+}
+
+/* ===== SERPIENTE 3D CON ESCAMAS ===== */
+function drawSnake(t){
+    const n=snake.length;
+    if(n===0) return;
+
+    // Centros de cada segmento en píxeles
+    const pts=snake.map(s=>({x:s.x*gridSize+gridSize/2, y:s.y*gridSize+gridSize/2}));
+
+    // Ángulo de orientación de cada segmento, mirando hacia delante (hacia el segmento anterior en el array)
+    const angles=new Array(n);
+    for(let i=0;i<n;i++){
+        if(i<n-1){
+            angles[i]=angOf(pts[i].x-pts[i+1].x, pts[i].y-pts[i+1].y);
+        } else {
+            angles[i]=angles[i-1]!==undefined?angles[i-1]:0;
+        }
+    }
+
+    const baseR=gridSize*0.52;
+
+    ctx.save();
+    ctx.shadowBlur=14; ctx.shadowColor="#00ff88";
+
+    // ---- Cuerpo: dibujar de cola a cabeza para que la cabeza quede por encima ----
+    for(let i=n-1;i>=1;i--){
+        const p=pts[i];
+        const ang=angles[i];
+        // el cuerpo se afina ligeramente hacia la cola
+        const taper=0.65+0.35*(1-i/n);
+        const r=baseR*taper;
+
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(ang);
+
+        // sombra de contacto bajo el segmento
+        ctx.save();
+        ctx.shadowBlur=0;
+        ctx.fillStyle="rgba(0,0,0,0.3)";
+        ctx.beginPath();
+        ctx.ellipse(0,r*0.55,r*0.95,r*0.32,0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // cuerpo cilíndrico: gradiente vertical (luz arriba, sombra abajo)
+        const grad=ctx.createLinearGradient(0,-r,0,r);
+        grad.addColorStop(0,"#8dffce");
+        grad.addColorStop(0.35,"#00e07a");
+        grad.addColorStop(0.7,"#00a85c");
+        grad.addColorStop(1,"#005c33");
+        ctx.fillStyle=grad;
+        ctx.beginPath();
+        ctx.ellipse(0,0,r,r*0.95,0,0,Math.PI*2);
+        ctx.fill();
+
+        // patrón de escamas: filas de óvalos solapados con su propio sombreado, recortado al cuerpo
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(0,0,r,r*0.95,0,0,Math.PI*2);
+        ctx.clip();
+        const scaleRows=3;
+        const rowH=(r*1.9)/scaleRows;
+        for(let rowI=0;rowI<scaleRows;rowI++){
+            const yOff=-r*0.95+rowH*rowI+rowH/2;
+            const offset=(rowI%2===0)?0:r*0.35;
+            const scaleW=r*0.7;
+            for(let sx=-r*1.4+offset; sx<r*1.4; sx+=scaleW*0.9){
+                const sg=ctx.createRadialGradient(sx-scaleW*0.15,yOff-rowH*0.15,scaleW*0.05,sx,yOff,scaleW*0.5);
+                sg.addColorStop(0,"rgba(255,255,255,0.22)");
+                sg.addColorStop(0.5,"rgba(255,255,255,0.03)");
+                sg.addColorStop(1,"rgba(0,40,20,0.25)");
+                ctx.fillStyle=sg;
+                ctx.beginPath();
+                ctx.ellipse(sx,yOff,scaleW*0.5,rowH*0.46,0,0,Math.PI*2);
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+
+        // línea dorsal sutil (lomo más claro)
+        ctx.save();
+        ctx.globalAlpha=0.25;
+        ctx.fillStyle="#ffffff";
+        ctx.beginPath();
+        ctx.ellipse(0,-r*0.45,r*0.85,r*0.18,0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.restore();
+    }
+
+    // ---- Cabeza ----
+    {
+        const p=pts[0];
+        const ang=angles[0];
+        const r=baseR*1.08;
+
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(ang);
+
+        // sombra de contacto
+        ctx.save();
+        ctx.shadowBlur=0;
+        ctx.fillStyle="rgba(0,0,0,0.32)";
+        ctx.beginPath();
+        ctx.ellipse(0,r*0.6,r*1.05,r*0.34,0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // lengua (parpadeo periódico)
+        if(Math.sin(t/250)>0.4){
+            ctx.save();
+            ctx.strokeStyle="#ff3b6e";
+            ctx.lineWidth=Math.max(1,r*0.07);
+            ctx.lineCap="round";
+            ctx.beginPath();
+            ctx.moveTo(r*0.95,0);
+            ctx.lineTo(r*1.45,0);
+            ctx.moveTo(r*1.45,0);
+            ctx.lineTo(r*1.65,-r*0.18);
+            ctx.moveTo(r*1.45,0);
+            ctx.lineTo(r*1.65,r*0.18);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // forma de la cabeza con gradiente de volumen
+        const headGrad=ctx.createRadialGradient(-r*0.2,-r*0.35,r*0.1,0,0,r*1.3);
+        headGrad.addColorStop(0,"#baffe0");
+        headGrad.addColorStop(0.4,"#00e07a");
+        headGrad.addColorStop(0.8,"#00a85c");
+        headGrad.addColorStop(1,"#005c33");
+        ctx.fillStyle=headGrad;
+        ctx.beginPath();
+        ctx.ellipse(0,0,r,r*0.92,0,0,Math.PI*2);
+        ctx.fill();
+
+        // escamas suaves en la cabeza
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(0,0,r,r*0.92,0,0,Math.PI*2);
+        ctx.clip();
+        for(let rowI=0;rowI<2;rowI++){
+            const yOff=-r*0.5+rowI*r*0.55;
+            for(let sx=-r*0.7;sx<r*1.1;sx+=r*0.5){
+                const sg=ctx.createRadialGradient(sx-r*0.08,yOff-r*0.08,r*0.02,sx,yOff,r*0.3);
+                sg.addColorStop(0,"rgba(255,255,255,0.18)");
+                sg.addColorStop(1,"rgba(0,40,20,0.2)");
+                ctx.fillStyle=sg;
+                ctx.beginPath();
+                ctx.ellipse(sx,yOff,r*0.28,r*0.24,0,0,Math.PI*2);
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+
+        // ojos (a ambos lados, ligeramente hacia delante) con pupila vertical de reptil
+        [-1,1].forEach(side=>{
+            ctx.fillStyle="#0a2e1c";
+            ctx.beginPath();
+            ctx.ellipse(r*0.25,side*r*0.42,r*0.16,r*0.2,0,0,Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle="#000";
+            ctx.beginPath();
+            ctx.ellipse(r*0.3,side*r*0.42,r*0.05,r*0.16,0,0,Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle="rgba(255,255,255,0.8)";
+            ctx.beginPath();
+            ctx.arc(r*0.2,side*r*0.36,r*0.045,0,Math.PI*2);
+            ctx.fill();
+        });
+
+        // fosas nasales
+        ctx.fillStyle="#004d2b";
+        [-1,1].forEach(side=>{
+            ctx.beginPath();
+            ctx.arc(r*0.85,side*r*0.12,r*0.04,0,Math.PI*2);
+            ctx.fill();
+        });
+
+        ctx.restore();
+    }
+
+    ctx.restore();
 }
 </script>
 </body>
